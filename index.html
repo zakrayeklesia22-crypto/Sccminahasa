@@ -277,6 +277,8 @@
             font-size: 1.4rem;
             box-shadow: 0 4px 15px rgba(0,0,0,0.5);
             transition: transform 0.3s ease;
+            border: none;
+            cursor: pointer;
         }
 
         .float-btn:hover { transform: scale(1.1); }
@@ -430,11 +432,11 @@
         </div>
     </section>
 
-    <!-- FLOATING BUTTONS (WA GRUP SOS & CHAT ADMIN) -->
+    <!-- FLOATING BUTTONS (WA GRUP SOS LOKASI AUTOMATIS & CHAT ADMIN) -->
     <div class="floating-container">
-        <!-- Tombol SOS Merah Langsung Mengarah ke Grup WhatsApp Resmi SCC -->
-        <a href="https://chat.whatsapp.com/CxbgtzPf1Xi0OZqAfrtcys?s=cl&p=a&mlu=4&ilr=4" target="_blank" class="float-btn float-sos" title="Bantuan Darurat SOS (Grup WhatsApp)">🆘</a>
-        <!-- Tombol Chat Admin -->
+        <!-- Tombol SOS Otomatis Deteksi Lokasi GPS Google Maps -->
+        <button onclick="sendSOSWithLocation()" class="float-btn float-sos" id="sosBtn" title="Bantuan Darurat SOS (Otomatis Kirim Lokasi GPS)">🆘</button>
+        <!-- Tombol Chat / Masuk Grup WA -->
         <a href="https://chat.whatsapp.com/CxbgtzPf1Xi0OZqAfrtcys?s=cl&p=a&mlu=4&ilr=4" target="_blank" class="float-btn float-wa" title="Masuk Grup / Chat Admin">💬</a>
     </div>
 
@@ -447,6 +449,39 @@
     <script>
         function toggleNav() {
             document.getElementById('navbar').classList.toggle('active');
+        }
+
+        // Fitur SOS Otomatis Ambil Lokasi GPS & Buka WhatsApp Grup
+        function sendSOSWithLocation() {
+            const sosBtn = document.getElementById('sosBtn');
+            const groupWaUrl = "https://chat.whatsapp.com/CxbgtzPf1Xi0OZqAfrtcys";
+
+            if (navigator.geolocation) {
+                sosBtn.innerText = "⏳"; // Indikator Loading
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        const lat = position.coords.latitude;
+                        const lon = position.coords.longitude;
+                        const mapsUrl = `https://maps.google.com/?q=${lat},${lon}`;
+                        
+                        // Buat teks darurat berserta link lokasi Google Maps
+                        const message = encodeURIComponent(`🚨 *SOS! BANTUAN DARURAT JALANAN SCC MINAHASA* 🚨\n\nSaya membutuhkan bantuan segera! Posisi GPS lokasi terkini saya ada di sini:\n${mapsUrl}`);
+                        
+                        sosBtn.innerText = "🆘";
+                        window.open(`${groupWaUrl}?text=${message}`, '_blank');
+                    },
+                    (error) => {
+                        // Jika akses lokasi ditolak/gagal, tetap buka WhatsApp dengan teks darurat dasar
+                        sosBtn.innerText = "🆘";
+                        const fallbackMsg = encodeURIComponent("🚨 *SOS! BANTUAN DARURAT JALANAN SCC MINAHASA* 🚨\n\nSaya membutuhkan bantuan segera di jalan! Mohon cek posisi saya.");
+                        window.open(`${groupWaUrl}?text=${fallbackMsg}`, '_blank');
+                    },
+                    { enableHighAccuracy: true, timeout: 10000 }
+                );
+            } else {
+                // Browser tidak mendukung Geolocation
+                window.open(groupWaUrl, '_blank');
+            }
         }
 
         // Data Sementara untuk Pencarian Anggota
